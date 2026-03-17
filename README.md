@@ -1,8 +1,11 @@
 # Simple WebAuthn Helper
 
+A minimal/simple **WebAuthn helper** for registering and logging in security keys (USB, NFC, etc.) with **optional callbacks**. Designed for easy testing and demos.
+
+![GitHub release](https://img.shields.io/github/v/release/onepointfive-REAL/Web-Authn-Helper)
 [![](https://data.jsdelivr.com/v1/package/gh/onepointfive-REAL/Web-Authn-Helper/badge)](https://www.jsdelivr.com/package/gh/onepointfive-REAL/Web-Authn-Helper)
 
-A minimal/simple **WebAuthn helper** for registering and logging in security keys (USB, NFC, etc.) with **optional callbacks**. Designed for easy testing and demos.
+[Try Simple WebAuthn Helper live!](https://onepointfive-real.github.io/Web-Authn-Helper/)
 
 Supports:
 
