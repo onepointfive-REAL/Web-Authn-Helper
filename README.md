@@ -1,79 +1,71 @@
 # Simple WebAuthn Helper
 
-A small client-side **WebAuthn helper** for registering and logging in with security keys or platform authenticators.
-Designed to be **very simple to integrate** into any webpage.
+A minimal/simple **WebAuthn helper** for registering and logging in security keys (USB, NFC, etc.) with **optional callbacks**. Designed for easy testing and demos.
 
----
+Supports:
 
-## Features
-
-* Simple register and login functions
-* Works with security keys and platform authenticators
-* Optional restriction to **USB security keys only**
-* Uses secure browser randomness (`crypto.getRandomValues`)
-* User-defined success and failure callbacks
-* Stores credential ID in `localStorage`
-* Can clear stored credentials easily
+* Register all devices or only external (USB/NFC) devices
+* Login with stored key or a raw Base64 credential
+* Optional callbacks for success/failure
+* Access to **Base64 rawId** and **device type** in callbacks
 
 ---
 
 ## Installation
 
-Download `webauthn-helper.js` and include it on your page:
+Include the helper JS in your HTML:
 
 ```html
 <script src="webauthn-helper.js"></script>
 ```
-
----
-
-## Example Usage
+Or use
 
 ```html
-<script src="webauthn-helper.js"></script>
-<script>
-// User-defined callbacks
-function registerSuccess(cred) { alert("Registered!"); }
-function registerFail(err) { alert("Register failed!"); }
-function loginSuccess(assertion) { alert("Login success!"); }
-function loginFail(err) { alert("Login failed!"); }
-function loginFailedNotRegistered() { alert("Login failed: No key registered!"); }
-</script>
+<script src="https://cdn.jsdelivr.net/gh/onepointfive-REAL/Web-Authn-Helper/webauthn-helper.js"></script>
+```
+---
 
-<button onclick="WebAuthnHelper.register(1,'me@example.com','My Name')">
-Register All Devices
-</button>
+## Usage
 
-<button onclick="WebAuthnHelper.register(2,'me@example.com','My Name')">
-Register USB only
-</button>
+### Callbacks (optional, recommended)
 
-<button onclick="WebAuthnHelper.login()">
-Login
-</button>
+```javascript
+function registerSuccess(cred, base64Cred, deviceType) {
+    console.log("REGISTER SUCCESS", base64Cred, deviceType);
+}
 
-<button onclick="WebAuthnHelper.clear()">
-Clear Saved Key
-</button>
+function registerFail(err) {
+    console.log("REGISTER FAIL", err);
+}
+
+function loginSuccess(assertion, base64Cred, deviceType) {
+    console.log("LOGIN SUCCESS", base64Cred, deviceType);
+}
+
+function loginFail(err) {
+    console.log("LOGIN FAIL", err);
+}
+
+function loginFailedNotRegistered() {
+    console.log("LOGIN FAIL: No key registered");
+}
+
+function loginFailedWrongDevice() {
+    console.log("LOGIN FAIL: Wrong device");
+}
 ```
 
 ---
 
-## Functions
+### Register a key
 
-### Register
+```javascript
+// Register all devices
+WebAuthnHelper.register(1, "me@example.com", "My Name");
 
-```js
-WebAuthnHelper.register(deviceType, email, username)
+// Register USB/NFC only
+WebAuthnHelper.register(2, "me@example.com", "My Name");
 ```
-
-Example:
-
-```js
-WebAuthnHelper.register(1,"user@example.com","John")
-```
-
-Parameters:
 
 | Parameter  | Description                                                                    |
 | ---------- | ------------------------------------------------------------------------------ |
@@ -81,98 +73,99 @@ Parameters:
 | email      | user identifier                                                                |
 | username   | display name                                                                   |
 
-### Login
-
-```js
-WebAuthnHelper.login()
-```
-
-Attempts to authenticate with the saved credential.
-
-### Clear Stored Credential
-
-```js
-WebAuthnHelper.clear()
-```
-
-Removes stored WebAuthn data from `localStorage`.
+`registerSuccess` will receive the **credential object**, **Base64 rawId**, and **device type** used.
 
 ---
-
-## Callbacks
-
-Callbacks are **optional but recommended**.
-If a callback is not defined, the helper will **skip it safely without errors**.
-
-### Registration
-
-```js
-registerSuccess(credential)
-registerFail(error)
-```
 
 ### Login
 
-```js
-loginSuccess(assertion)
-loginFail(error)
-loginFailedNotRegistered()
+```javascript
+// Login with stored key
+WebAuthnHelper.login();
+
+// Login with a specific rawId (Base64)
+WebAuthnHelper.loginWithBase64Cred("BASE64_RAWID_HERE", DEVICE_ID_HERE);
+```
+
+`loginSuccess` will receive the **assertion object**, **Base64 rawId used**, and **device type used**.
+
+---
+
+### Clear stored key
+
+```javascript
+WebAuthnHelper.clear();
 ```
 
 ---
 
-## How It Works
+## Example HTML Page
 
-### Registration
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WebAuthn Helper Demo</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button, input { margin: 5px; padding: 8px; }
+    #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; min-height: 50px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
 
-1. Browser generates a **random challenge**
-2. The authenticator (security key or platform authenticator) creates a credential
-3. The credential ID (`rawId`) is stored in `localStorage`
+<h2>WebAuthn Helper Demo</h2>
 
-### Login
+<button onclick="WebAuthnHelper.register(1,'me@example.com','My Name')">Register All Devices</button>
+<button onclick="WebAuthnHelper.register(2,'me@example.com','My Name')">Register USB Only</button>
+<button onclick="WebAuthnHelper.login()">Login</button>
+<button onclick="WebAuthnHelper.clear()">Clear Key</button>
 
-1. Browser generates a **new random challenge**
-2. The stored credential ID is used for authentication
-3. The authenticator signs the challenge to prove identity
+<hr>
 
----
+<h3>Login With RawId</h3>
+<input type="text" id="rawIdInput" placeholder="Paste Base64 rawId here"><br>
+<input type="number" id="deviceTypeInput" value="1" min="1" max="2"><br>
+<button onclick="loginWithInput()">Login With RawId</button>
 
-## Storage
+<div id="output"></div>
 
-The helper stores data in:
+<script src="webauthn-helper.js"></script>
+<script>
+const output = document.getElementById("output");
+function show(msg) { output.textContent = msg; }
 
-```js
-localStorage.webauthnKey
-localStorage.webauthnDeviceType
+// Callbacks
+function registerSuccess(cred, base64Cred, deviceType) {
+    show(`REGISTER SUCCESS\nBase64 rawId: ${base64Cred}\nDevice Type: ${deviceType}`);
+}
+function registerFail(err) { show("REGISTER FAIL: " + err); }
+function loginSuccess(assertion, base64Cred, deviceType) {
+    show(`LOGIN SUCCESS\nBase64 rawId: ${base64Cred}\nDevice Type: ${deviceType}`);
+}
+function loginFail(err) { show("LOGIN FAIL: " + err); }
+function loginFailedNotRegistered() { show("LOGIN FAIL: No key registered"); }
+function loginFailedWrongDevice() { show("LOGIN FAIL: Wrong device"); }
+
+// Login with rawId input
+function loginWithInput() {
+    const rawId = document.getElementById("rawIdInput").value.trim();
+    const deviceType = parseInt(document.getElementById("deviceTypeInput").value) || 1;
+    if (!rawId) { alert("Please paste a Base64 rawId!"); return; }
+    WebAuthnHelper.loginWithBase64Cred(rawId, deviceType);
+}
+</script>
+
+</body>
+</html>
 ```
 
 ---
 
-## Security Notes
+**Notes:**
 
-This helper is intended for:
-
-* demos
-* prototypes
-* learning WebAuthn
-* simple local authentication experiments
-
-**For production systems**, you should:
-
-* verify signatures on a server
-* store credentials in a database
-* implement proper user account management
-
----
-
-## Requirements
-
-* HTTPS website
-* Modern browser with WebAuthn support
-* Security key or platform authenticator
-
----
-
-## License
-
-Free to use and modify.
+* This helper is for **demo/testing purposes** only.
+* For **real authentication**, you need a **server to verify the cryptographic signature** of WebAuthn assertions.
+* Callbacks are **optional** but recommended to handle login/register events.
+* `base64Cred` and `deviceType` are always provided in success callbacks for convenience.
