@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WebAuthn Helper Demo</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button, input { margin: 5px; padding: 8px; }
+    #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; min-height: 50px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<h2>WebAuthn Helper Demo</h2>
+
+<button onclick="WebAuthnHelper.register(1,'me@example.com','My Name')">Register All Devices</button>
+<button onclick="WebAuthnHelper.register(2,'me@example.com','My Name')">Register USB Only</button>
+<button onclick="WebAuthnHelper.login()">Login</button>
+<button onclick="WebAuthnHelper.clear()">Clear Key</button>
+
+<hr>
+
+<h3>Login With RawId</h3>
+<input type="text" id="rawIdInput" placeholder="Paste Base64 rawId here"><br>
+<input type="number" id="deviceTypeInput" value="1" min="1" max="2"><br>
+<button onclick="loginWithInput()">Login With RawId</button>
+
+<div id="output"></div>
+
+<script src="webauthn-helper.js"></script>
+<script>
+const output = document.getElementById("output");
+function show(msg) { output.textContent = msg; }
+
+// Callbacks
+function registerSuccess(cred, base64Cred, deviceType) {
+    show(`REGISTER SUCCESS\nBase64 rawId: ${base64Cred}\nDevice Type: ${deviceType}`);
+}
+function registerFail(err) { show("REGISTER FAIL: " + err); }
+function loginSuccess(assertion, base64Cred, deviceType) {
+    show(`LOGIN SUCCESS\nBase64 rawId: ${base64Cred}\nDevice Type: ${deviceType}`);
+}
+function loginFail(err) { show("LOGIN FAIL: " + err); }
+function loginFailedNotRegistered() { show("LOGIN FAIL: No key registered"); }
+function loginFailedWrongDevice() { show("LOGIN FAIL: Wrong device"); }
+
+// Login with rawId input
+function loginWithInput() {
+    const rawId = document.getElementById("rawIdInput").value.trim();
+    const deviceType = parseInt(document.getElementById("deviceTypeInput").value) || 1;
+    if (!rawId) { alert("Please paste a Base64 rawId!"); return; }
+    WebAuthnHelper.loginWithBase64Cred(rawId, deviceType);
+}
+</script>
+
+</body>
+</html>
