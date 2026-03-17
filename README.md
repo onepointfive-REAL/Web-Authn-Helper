@@ -77,7 +77,7 @@ Parameters:
 
 | Parameter  | Description                                                                    |
 | ---------- | ------------------------------------------------------------------------------ |
-| deviceType | `1` = all authenticators (phone + external), `2` = external security keys only |
+| deviceType | `1` = all authenticators , `2` = external security keys only                   |
 | email      | user identifier                                                                |
 | username   | display name                                                                   |
 
