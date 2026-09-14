@@ -13,6 +13,7 @@ Supports:
 * Login with stored key or a raw Base64 credential
 * Optional callbacks for success/failure
 * Access to **Base64 rawId** and **device type** in callbacks
+* FIDO2, FIDO, and UF2 support
 
 ---
 
